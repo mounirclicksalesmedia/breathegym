@@ -11,6 +11,7 @@ import { Reviews } from "./components/Reviews";
 import { FinalCTA, Footer } from "./components/Footer";
 import { FloatingCTA } from "./components/FloatingCTA";
 import { SmoothScroll } from "./components/SmoothScroll";
+import { Preloader } from "./components/Preloader";
 
 // Serve a cached static render and refresh hourly; admin package edits call
 // revalidatePath("/") for instant updates, so this only affects idle drift.
@@ -48,6 +49,7 @@ export default async function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      <Preloader />
       <SmoothScroll />
       <Navbar />
       <main className="flex-1">

@@ -9,6 +9,7 @@ import { ArrowDown, Star, Sparkles } from "lucide-react";
 import { useLang } from "./LanguageProvider";
 import { content } from "../lib/content";
 import { HeroBackground } from "./HeroBackground";
+import { REVEAL_EVENT, isRevealed } from "../lib/reveal";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
@@ -28,11 +29,20 @@ export function Hero() {
       gsap.set(".hero-media", { xPercent: -50, yPercent: -50 });
       gsap.set(".mega-word", { yPercent: -50 });
 
+      // Reduced motion: show everything, no entrance, no pin.
+      if (reduce) {
+        gsap.set([".hero-eyebrow", ".hero-bottom .reveal-up"], { autoAlpha: 1, y: 0 });
+        gsap.set(".hero-media", { autoAlpha: 1, y: 0, scale: 1, clipPath: "none" });
+        gsap.set(".mega-word", { autoAlpha: 1, y: 0 });
+        return;
+      }
+
       // Subtle cursor parallax — armed only after the entrance settles so it
       // never fights the intro tween. Media drifts with the cursor, the big
       // word counters it for gentle depth.
+      let cleanupParallax: (() => void) | undefined;
       const armParallax = () => {
-        if (reduce || !finePointer || !root.current) return;
+        if (!finePointer || !root.current) return;
         const mediaX = gsap.quickTo(".hero-media", "x", { duration: 0.8, ease: "power3.out" });
         const mediaY = gsap.quickTo(".hero-media", "y", { duration: 0.8, ease: "power3.out" });
         const wordX = gsap.quickTo(".mega-word", "x", { duration: 1.1, ease: "power3.out" });
@@ -46,12 +56,13 @@ export function Hero() {
         root.current.addEventListener("mousemove", onMove);
         cleanupParallax = () => root.current?.removeEventListener("mousemove", onMove);
       };
-      let cleanupParallax: (() => void) | undefined;
 
-      // Entrance: eyebrow + video + bottom content come in on load.
-      // The big word is intentionally NOT here — it reveals on scroll.
+      // Entrance: eyebrow + video + bottom content come in. Built paused so the
+      // preloader triggers it — the reveal is the first motion the visitor
+      // sees, nothing plays hidden behind the loader.
       const tl = gsap.timeline({
         defaults: { ease: "power3.out" },
+        paused: true,
         onComplete: armParallax,
       });
       tl.from(".hero-eyebrow", { y: 18, autoAlpha: 0, duration: 0.7 })
@@ -73,12 +84,6 @@ export function Hero() {
           { y: 30, autoAlpha: 0, duration: 0.7, stagger: 0.12 },
           "-=0.75"
         );
-
-      // Reduced motion: show the word, no pin.
-      if (reduce) {
-        gsap.set(".mega-word", { autoAlpha: 1, yPercent: -50, y: 0 });
-        return;
-      }
 
       // Video autoplays on its own. We only pin briefly (≈half a screen — about
       // 2–3 scrolls) so the big word reveals in front and holds for a beat,
@@ -117,7 +122,29 @@ export function Hero() {
         // brief hold so the revealed word reads before release
         .to({}, { duration: 0.4 });
 
-      return () => cleanupParallax?.();
+      // Play the entrance when the preloader lifts (or immediately if it already
+      // did / there is no loader), then re-measure the pin.
+      let started = false;
+      let fallback = 0;
+      const startEntrance = () => {
+        if (started) return;
+        started = true;
+        window.clearTimeout(fallback);
+        tl.play(0);
+        requestAnimationFrame(() => ScrollTrigger.refresh());
+      };
+      if (isRevealed()) {
+        startEntrance();
+      } else {
+        window.addEventListener(REVEAL_EVENT, startEntrance, { once: true });
+        fallback = window.setTimeout(startEntrance, 5000);
+      }
+
+      return () => {
+        window.removeEventListener(REVEAL_EVENT, startEntrance);
+        window.clearTimeout(fallback);
+        cleanupParallax?.();
+      };
     },
     { scope: root }
   );

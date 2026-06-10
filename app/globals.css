@@ -74,6 +74,12 @@ body {
   overflow-x: hidden;
 }
 
+/* Preloader: lock scrolling while the intro overlay is on screen */
+html.is-loading,
+html.is-loading body {
+  overflow: hidden !important;
+}
+
 /* Display serif-ish elegance via tighter tracking on EN headings */
 html[lang="en"] .display {
   letter-spacing: -0.02em;
