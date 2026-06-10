@@ -1,0 +1,60 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model AdminUser {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  createdAt    DateTime @default(now())
+}
+
+model Package {
+  id         String   @id @default(cuid())
+  slug       String   @unique
+  nameAr     String
+  nameEn     String
+  durationAr String
+  durationEn String
+  // Whole SAR amounts (no halalas on the price list)
+  priceSar   Int
+  featured   Boolean  @default(false)
+  active     Boolean  @default(true)
+  sortOrder  Int      @default(0)
+  // [{ ar: string, en: string }, ...]
+  features   Json     @default("[]")
+  leads      Lead[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  CONVERTED
+  LOST
+}
+
+model Lead {
+  id        String     @id @default(cuid())
+  name      String
+  phone     String
+  status    LeadStatus @default(NEW)
+  source    String     @default("landing")
+  notes     String?
+  // Snapshot of what was chosen at submit time (survives package deletion/rename)
+  packageLabel String?
+  package   Package?   @relation(fields: [packageId], references: [id], onDelete: SetNull)
+  packageId String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@index([createdAt])
+  @@index([status])
+}

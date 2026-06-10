@@ -1,26 +1,197 @@
 @import "tailwindcss";
 
+/* ============================================================
+   Breathe Ladies Fitness — Brand tokens
+   Primary brand: #ce8485 (dusty rose)
+   ============================================================ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --brand: #ce8485;
+  --brand-600: #c06f70;
+  --brand-700: #a85a5b;
+  --brand-200: #ecc6c6;
+  --brand-100: #f6e3e3;
+  --brand-50: #fbf3f2;
+
+  --background: #fbf8f6;
+  --surface: #ffffff;
+  --foreground: #2b2222;
+  --muted: #8a7d7c;
+  --border: #efe3df;
+
+  --ink: #221a1a;
+  --gold: #c9a47a;
+
+  --font-en: var(--font-poppins), "Poppins", system-ui, sans-serif;
+  --font-ar: var(--font-almarai), "Almarai", system-ui, sans-serif;
 }
 
 @theme inline {
+  --color-brand: var(--brand);
+  --color-brand-600: var(--brand-600);
+  --color-brand-700: var(--brand-700);
+  --color-brand-200: var(--brand-200);
+  --color-brand-100: var(--brand-100);
+  --color-brand-50: var(--brand-50);
   --color-background: var(--background);
+  --color-surface: var(--surface);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+
+  --font-sans: var(--font-en);
+  --font-ar: var(--font-ar);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Language-driven font switching */
+html[lang="en"] body,
+html[lang="en"] .font-auto {
+  font-family: var(--font-en);
+}
+html[lang="ar"] body,
+html[lang="ar"] .font-auto {
+  font-family: var(--font-ar);
+}
+
+.font-en {
+  font-family: var(--font-en);
+}
+.font-ar {
+  font-family: var(--font-ar);
+}
+
+* {
+  border-color: var(--border);
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  overflow-x: hidden;
+}
+
+/* Display serif-ish elegance via tighter tracking on EN headings */
+html[lang="en"] .display {
+  letter-spacing: -0.02em;
+}
+
+/* Oversized editorial hero word */
+.mega {
+  line-height: 0.84;
+  letter-spacing: -0.01em;
+}
+html[lang="en"] .mega {
+  font-family: var(--font-anton), var(--font-en);
+  letter-spacing: 0.005em;
+}
+html[lang="ar"] .mega {
+  font-family: var(--font-ar);
+  font-weight: 800;
+  line-height: 0.9;
+}
+/* Outlined ghost variant of the mega word */
+.mega-outline {
+  color: transparent;
+  -webkit-text-stroke: 2px var(--brand-200);
+}
+
+/* Lenis smooth scroll (landing page) */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+/* Selection */
+::selection {
+  background: var(--brand);
+  color: #fff;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--brand-50);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--brand-200);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--brand);
+}
+
+/* Utility: brand gradient text */
+.text-gradient {
+  background: linear-gradient(120deg, var(--brand-700), var(--brand) 55%, var(--gold));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Soft brand glow */
+.brand-glow {
+  box-shadow: 0 30px 80px -30px rgba(206, 132, 133, 0.55);
+}
+
+/* Glass card */
+.glass {
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+/* Reveal helper (used before GSAP/JS hydration so content is never invisible if JS off) */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* Marquee */
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+.animate-marquee {
+  animation: marquee 28s linear infinite;
+}
+html[dir="rtl"] .animate-marquee {
+  animation-direction: reverse;
+}
+
+/* Subtle floating */
+@keyframes floaty {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
+}
+.animate-floaty {
+  animation: floaty 6s ease-in-out infinite;
 }
