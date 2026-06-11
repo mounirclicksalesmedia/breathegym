@@ -218,7 +218,9 @@ html[dir="rtl"] .scroll-progress {
   }
 }
 .animate-marquee {
-  animation: marquee 28s linear infinite;
+  /* -50% of a 6-copy track = 3 word-sets per cycle; 80s keeps the same
+     gentle px/s speed the old 1-set/28s loop had */
+  animation: marquee 80s linear infinite;
 }
 html[dir="rtl"] .animate-marquee {
   animation-direction: reverse;
