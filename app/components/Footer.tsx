@@ -21,28 +21,33 @@ export function FinalCTA() {
   const c = content.cta;
   return (
     <section className="px-5 pb-4 md:px-8">
-      <div className="mx-auto max-w-7xl rounded-[2.5rem] border border-border bg-surface px-6 py-16 text-center md:py-20">
-        <Reveal>
-          <h2 className="display mx-auto max-w-3xl text-[clamp(1.9rem,4.5vw,3.3rem)] font-extrabold leading-tight text-foreground">
-            {t(c.title)}
-          </h2>
-        </Reveal>
-        <Reveal delay={0.08}>
-          <p className="mx-auto mt-4 max-w-xl text-base text-muted md:text-lg">
-            {t(c.body)}
-          </p>
-        </Reveal>
-        <Reveal delay={0.14}>
-          <a
-            href={SITE.whatsapp}
-            target="_blank"
-            rel="noreferrer"
-            className="mt-8 inline-flex items-center gap-2 rounded-full bg-brand px-8 py-4 text-base font-bold text-white shadow-[0_20px_45px_-18px_rgba(206,132,133,0.95)] transition hover:scale-[1.03] hover:bg-brand-600"
-          >
-            {t(c.cta)}
-            <ArrowUpRight className="h-5 w-5" />
-          </a>
-        </Reveal>
+      <div className="relative mx-auto max-w-7xl overflow-hidden rounded-[2.5rem] border border-border bg-surface px-6 py-16 text-center md:py-20">
+        {/* soft rose wash behind the closing pitch */}
+        <div className="pointer-events-none absolute -top-28 left-1/2 h-72 w-[38rem] -translate-x-1/2 rounded-full bg-brand-100/70 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-32 -right-20 h-64 w-64 rounded-full bg-brand-50 blur-3xl" />
+        <div className="relative">
+          <Reveal>
+            <h2 className="display mx-auto max-w-3xl text-[clamp(1.9rem,4.5vw,3.3rem)] font-extrabold leading-tight text-foreground">
+              {t(c.title)}
+            </h2>
+          </Reveal>
+          <Reveal delay={0.08}>
+            <p className="mx-auto mt-4 max-w-xl text-base text-muted md:text-lg">
+              {t(c.body)}
+            </p>
+          </Reveal>
+          <Reveal delay={0.14}>
+            <a
+              href={SITE.whatsapp}
+              target="_blank"
+              rel="noreferrer"
+              className="btn-shine mt-8 inline-flex items-center gap-2 rounded-full bg-brand px-8 py-4 text-base font-bold text-white shadow-[0_20px_45px_-18px_rgba(206,132,133,0.95)] transition hover:scale-[1.03] hover:bg-brand-600"
+            >
+              {t(c.cta)}
+              <ArrowUpRight className="h-5 w-5" />
+            </a>
+          </Reveal>
+        </div>
       </div>
     </section>
   );

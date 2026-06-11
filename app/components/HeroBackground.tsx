@@ -1,77 +1,92 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { useRef } from "react";
+import { gsap } from "gsap";
+import { useGSAP } from "@gsap/react";
+
+gsap.registerPlugin(useGSAP);
 
 const GRID = 44; // grid cell size in px
 const BEAM_LEN = 88;
 
-function useWindowWidth() {
-  const [w, setW] = useState<number | undefined>(undefined);
-  useEffect(() => {
-    const on = () => setW(window.innerWidth);
-    on();
-    window.addEventListener("resize", on);
-    return () => window.removeEventListener("resize", on);
-  }, []);
-  return w;
-}
+// Column fraction + vertical placement + timing for each falling beam.
+const BEAMS = [
+  { frac: 0.08, top: 0, duration: 3.5, repeatDelay: 5, delay: 2 },
+  { frac: 0.18, top: GRID * 10, duration: 3.5, repeatDelay: 10, delay: 4 },
+  { frac: 0.32, top: GRID * 2, duration: 4, repeatDelay: 6, delay: 1 },
+  { frac: 0.74, top: GRID * 7, duration: 2.5, repeatDelay: 7.5, delay: 3.5 },
+  { frac: 0.62, top: 0, duration: 3, repeatDelay: 3, delay: 1 },
+  { frac: 0.92, top: GRID * 3, duration: 5, repeatDelay: 5, delay: 5 },
+];
 
-function Beam({
-  top,
-  left,
-  transition = {},
-}: {
-  top: number;
-  left: number;
-  transition?: object;
-}) {
-  return (
-    <motion.div
-      initial={{ y: 0, opacity: 0 }}
-      animate={{ opacity: [0, 1, 0], y: GRID * 9 }}
-      transition={{
-        ease: "easeInOut",
-        duration: 3,
-        repeat: Infinity,
-        repeatDelay: 1.5,
-        ...transition,
-      }}
-      style={{ top, left, height: BEAM_LEN }}
-      className="absolute w-px bg-gradient-to-b from-brand/0 to-brand"
-    />
+export function HeroBackground() {
+  const root = useRef<HTMLDivElement>(null);
+
+  useGSAP(
+    () => {
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const beams = gsap.utils.toArray<HTMLElement>(".hero-beam");
+
+      // snap each beam to a grid column for the current viewport width
+      const placeBeams = () => {
+        const w = window.innerWidth;
+        beams.forEach((el, i) => {
+          gsap.set(el, { left: Math.floor((w * BEAMS[i].frac) / GRID) * GRID });
+        });
+      };
+      placeBeams();
+
+      gsap.set(".hero-glow", { xPercent: -50 });
+
+      if (reduce) {
+        gsap.set(".hero-grid", { opacity: 1 });
+        gsap.set(".hero-glow", { opacity: 0.35 });
+        return;
+      }
+
+      gsap.fromTo(".hero-grid", { opacity: 0 }, { opacity: 1, duration: 2.5, ease: "sine.inOut" });
+
+      // slowly breathing rose glow
+      gsap.fromTo(
+        ".hero-glow",
+        { opacity: 0.3, scale: 0.9 },
+        { opacity: 0.55, scale: 1.05, duration: 4.5, ease: "sine.inOut", yoyo: true, repeat: -1 }
+      );
+
+      beams.forEach((el, i) => {
+        const b = BEAMS[i];
+        const half = b.duration / 2;
+        gsap
+          .timeline({ repeat: -1, repeatDelay: b.repeatDelay, delay: b.delay })
+          .fromTo(el, { y: 0 }, { y: GRID * 9, duration: b.duration, ease: "sine.inOut" }, 0)
+          .fromTo(el, { autoAlpha: 0 }, { autoAlpha: 1, duration: half, ease: "sine.in" }, 0)
+          .to(el, { autoAlpha: 0, duration: half, ease: "sine.out" }, half);
+      });
+
+      window.addEventListener("resize", placeBeams);
+      return () => window.removeEventListener("resize", placeBeams);
+    },
+    { scope: root }
   );
-}
 
-function Beams() {
-  const width = useWindowWidth();
-  const cols = width ? Math.floor(width / GRID) : 0;
-  const placements = [
-    { top: 0, left: Math.floor(cols * 0.08) * GRID, transition: { duration: 3.5, repeatDelay: 5, delay: 2 } },
-    { top: GRID * 10, left: Math.floor(cols * 0.18) * GRID, transition: { duration: 3.5, repeatDelay: 10, delay: 4 } },
-    { top: GRID * 2, left: Math.floor(cols * 0.32) * GRID, transition: { duration: 4, repeatDelay: 6, delay: 1 } },
-    { top: GRID * 7, left: Math.floor(cols * 0.74) * GRID, transition: { duration: 2.5, repeatDelay: 7.5, delay: 3.5 } },
-    { top: 0, left: Math.floor(cols * 0.62) * GRID, transition: { duration: 3, repeatDelay: 3, delay: 1 } },
-    { top: GRID * 3, left: Math.floor(cols * 0.92) * GRID, transition: { duration: 5, repeatDelay: 5, delay: 5 } },
-  ];
   return (
-    <>
-      {placements.map((p, i) => (
-        <Beam key={i} top={p.top} left={p.left} transition={p.transition} />
-      ))}
-    </>
-  );
-}
-
-function GradientGrid() {
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 2.5, ease: "easeInOut" }}
-      className="absolute inset-0"
+    <div
+      ref={root}
+      aria-hidden
+      className="pointer-events-none absolute inset-0 z-[5] overflow-hidden"
+      style={{ opacity: 0.55 }}
     >
+      {/* soft, slowly breathing rose glow */}
       <div
+        className="hero-glow absolute left-1/2 top-[-10%] h-[60vh] w-[60vh] rounded-full"
+        style={{
+          background:
+            "radial-gradient(circle, rgba(206,132,133,0.35) 0%, rgba(206,132,133,0.12) 40%, transparent 70%)",
+          opacity: 0.3,
+        }}
+      />
+      <div
+        className="hero-grid absolute inset-0 opacity-0"
         style={{
           backgroundImage:
             "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 44 44' width='44' height='44' fill='none' stroke-width='1.4' stroke='rgb(206 132 133 / 0.5)'%3e%3cpath d='M0 .5H43.5V44'/%3e%3c/svg%3e\")",
@@ -82,32 +97,14 @@ function GradientGrid() {
           maskImage:
             "radial-gradient(120% 90% at 50% 0%, #000 0%, rgba(0,0,0,0.35) 55%, transparent 85%)",
         }}
-        className="absolute inset-0"
       />
-    </motion.div>
-  );
-}
-
-export function HeroBackground() {
-  return (
-    <div
-      aria-hidden
-      className="pointer-events-none absolute inset-0 z-[5] overflow-hidden mix-blend-multiply"
-      style={{ opacity: 0.55 }}
-    >
-      {/* soft, slowly breathing rose glow */}
-      <motion.div
-        initial={{ opacity: 0.35, scale: 0.9 }}
-        animate={{ opacity: [0.3, 0.55, 0.3], scale: [0.9, 1.05, 0.9] }}
-        transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute left-1/2 top-[-10%] h-[60vh] w-[60vh] -translate-x-1/2 rounded-full"
-        style={{
-          background:
-            "radial-gradient(circle, rgba(206,132,133,0.35) 0%, rgba(206,132,133,0.12) 40%, transparent 70%)",
-        }}
-      />
-      <GradientGrid />
-      <Beams />
+      {BEAMS.map((b, i) => (
+        <div
+          key={i}
+          className="hero-beam absolute w-px bg-gradient-to-b from-brand/0 to-brand opacity-0"
+          style={{ top: b.top, height: BEAM_LEN }}
+        />
+      ))}
     </div>
   );
 }

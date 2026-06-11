@@ -72,7 +72,7 @@ export function Navbar() {
 
           <a
             href="#trial"
-            className="hidden rounded-full bg-brand px-5 py-2.5 text-sm font-semibold text-white shadow-[0_12px_30px_-12px_rgba(206,132,133,0.9)] transition hover:bg-brand-600 sm:inline-block"
+            className="btn-shine hidden rounded-full bg-brand px-5 py-2.5 text-sm font-semibold text-white shadow-[0_12px_30px_-12px_rgba(206,132,133,0.9)] transition hover:bg-brand-600 sm:inline-block"
           >
             {t(content.nav.cta)}
           </a>

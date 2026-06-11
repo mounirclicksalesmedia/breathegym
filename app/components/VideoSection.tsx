@@ -32,16 +32,21 @@ export function VideoSection() {
     const el = videoRef.current;
     if (!el) return;
 
-    // Sound on by default whenever the clip is actually on screen, off when
-    // it scrolls away. Browsers only allow this after the first interaction,
-    // so retry on the first gesture if the early attempt is refused.
+    // Play (and try sound) only while the clip is actually on screen; pause
+    // and mute when it scrolls away so it never burns decode time off-screen.
+    // Browsers only allow audible playback after the first interaction, so
+    // retry on the first gesture if the early attempt is refused.
     const io = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
+          el.play().catch(() => {});
           tryUnmute();
-        } else if (!el.muted) {
-          el.muted = true;
-          setMuted(true);
+        } else {
+          if (!el.muted) {
+            el.muted = true;
+            setMuted(true);
+          }
+          el.pause();
         }
       },
       { threshold: 0.45 }
@@ -61,7 +66,6 @@ export function VideoSection() {
       io.disconnect();
       gestures.forEach((g) => window.removeEventListener(g, onGesture));
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const toggleSound = () => {
@@ -122,7 +126,6 @@ export function VideoSection() {
                   className="h-full w-full object-cover"
                   src="/videos/tour.mp4"
                   poster="/images/tour-poster.jpg"
-                  autoPlay
                   muted
                   loop
                   playsInline

@@ -1,7 +1,11 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
-import type { ReactNode } from "react";
+import { useRef, type ReactNode } from "react";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useGSAP } from "@gsap/react";
+
+gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 type Props = {
   children: ReactNode;
@@ -12,17 +16,36 @@ type Props = {
 };
 
 export function Reveal({ children, delay = 0, y = 28, className, once = true }: Props) {
-  const reduce = useReducedMotion();
+  const ref = useRef<HTMLDivElement>(null);
+
+  useGSAP(
+    () => {
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (reduce) return;
+      gsap.fromTo(
+        ref.current,
+        { autoAlpha: 0, y },
+        {
+          autoAlpha: 1,
+          y: 0,
+          duration: 0.9,
+          delay,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: ref.current,
+            start: "top 88%",
+            ...(once ? { once: true } : { toggleActions: "play none none reverse" }),
+          },
+        }
+      );
+    },
+    { scope: ref }
+  );
+
   return (
-    <motion.div
-      className={className}
-      initial={reduce ? { opacity: 0 } : { opacity: 0, y }}
-      whileInView={reduce ? { opacity: 1 } : { opacity: 1, y: 0 }}
-      viewport={{ once, margin: "-80px" }}
-      transition={{ duration: 0.7, delay, ease: [0.22, 1, 0.36, 1] }}
-    >
+    <div ref={ref} className={className}>
       {children}
-    </motion.div>
+    </div>
   );
 }
 
@@ -35,19 +58,33 @@ export function StaggerGroup({
   className?: string;
   stagger?: number;
 }) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useGSAP(
+    () => {
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const items = gsap.utils.toArray<HTMLElement>(".stagger-item", ref.current);
+      if (reduce || !items.length) return;
+      gsap.fromTo(
+        items,
+        { autoAlpha: 0, y: (_i: number, el: HTMLElement) => parseFloat(el.dataset.y ?? "30") },
+        {
+          autoAlpha: 1,
+          y: 0,
+          duration: 0.7,
+          ease: "power3.out",
+          stagger,
+          scrollTrigger: { trigger: ref.current, start: "top 85%", once: true },
+        }
+      );
+    },
+    { scope: ref }
+  );
+
   return (
-    <motion.div
-      className={className}
-      initial="hidden"
-      whileInView="show"
-      viewport={{ once: true, margin: "-60px" }}
-      variants={{
-        hidden: {},
-        show: { transition: { staggerChildren: stagger } },
-      }}
-    >
+    <div ref={ref} className={className}>
       {children}
-    </motion.div>
+    </div>
   );
 }
 
@@ -60,20 +97,9 @@ export function StaggerItem({
   className?: string;
   y?: number;
 }) {
-  const reduce = useReducedMotion();
   return (
-    <motion.div
-      className={className}
-      variants={{
-        hidden: reduce ? { opacity: 0 } : { opacity: 0, y },
-        show: {
-          opacity: 1,
-          y: 0,
-          transition: { duration: 0.65, ease: [0.22, 1, 0.36, 1] },
-        },
-      }}
-    >
+    <div className={className ? `stagger-item ${className}` : "stagger-item"} data-y={y}>
       {children}
-    </motion.div>
+    </div>
   );
 }

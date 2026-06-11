@@ -13,7 +13,7 @@ gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 export function Gallery() {
   const root = useRef<HTMLElement>(null);
-  const { t, lang } = useLang();
+  const { t } = useLang();
   const g = content.gallery;
 
   useGSAP(
@@ -38,16 +38,23 @@ export function Gallery() {
         );
       });
 
-      gsap.from(".gal-card", {
-        y: 60,
-        opacity: 0,
-        duration: 0.8,
-        ease: "power3.out",
-        stagger: 0.12,
-        scrollTrigger: { trigger: ".gal-grid", start: "top 80%" },
-      });
+      gsap.fromTo(
+        ".gal-card",
+        { y: 60, autoAlpha: 0 },
+        {
+          y: 0,
+          autoAlpha: 1,
+          duration: 0.8,
+          ease: "power3.out",
+          stagger: 0.12,
+          scrollTrigger: { trigger: ".gal-grid", start: "top 80%", once: true },
+        }
+      );
     },
-    { scope: root, dependencies: [lang] }
+    // No lang dependency: re-running on language flips created duplicate
+    // from-tweens that re-hid the cards and froze them near opacity 0.
+    // Layout shifts from RTL flips are handled by Hero's ScrollTrigger.refresh().
+    { scope: root }
   );
 
   return (

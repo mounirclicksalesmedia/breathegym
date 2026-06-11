@@ -173,6 +173,41 @@ html.lenis body {
   }
 }
 
+/* Scroll progress bar — grows from the reading edge */
+.scroll-progress {
+  transform-origin: left;
+}
+html[dir="rtl"] .scroll-progress {
+  transform-origin: right;
+}
+
+/* CTA shine — a light sweep across the button on hover */
+.btn-shine {
+  position: relative;
+  overflow: hidden;
+}
+.btn-shine::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -75%;
+  width: 50%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+  transform: skewX(-18deg);
+  pointer-events: none;
+}
+.btn-shine:hover::after {
+  left: 125%;
+  transition: left 0.75s ease;
+}
+
+/* Fade the marquee strip out at both edges */
+.marquee-mask {
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+  mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+}
+
 /* Marquee */
 @keyframes marquee {
   from {

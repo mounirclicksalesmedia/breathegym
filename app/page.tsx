@@ -11,6 +11,7 @@ import { Reviews } from "./components/Reviews";
 import { FinalCTA, Footer } from "./components/Footer";
 import { FloatingCTA } from "./components/FloatingCTA";
 import { SmoothScroll } from "./components/SmoothScroll";
+import { ScrollProgress } from "./components/ScrollProgress";
 import { Preloader } from "./components/Preloader";
 
 // Serve a cached static render and refresh hourly; admin package edits call
@@ -51,6 +52,7 @@ export default async function Home() {
       />
       <Preloader />
       <SmoothScroll />
+      <ScrollProgress />
       <Navbar />
       <main className="flex-1">
         <Hero />
